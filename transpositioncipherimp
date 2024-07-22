@@ -1,0 +1,59 @@
+from math import ceil
+from PyDictionary import PyDictionary
+
+class TranspositionCipher(object):
+    
+    def __init__(self, key):
+        self.key = key
+    
+    def encrypt_message(self, message):
+        message_split = list(message.lower())
+        message_length = len(message_split)
+        message_encrypted = ''
+        message_ceil = ceil(message_length / self.key)
+        
+        for j in range(self.key):
+            for i in range(message_ceil):
+                index = j + i * self.key
+                if index < message_length:
+                    message_encrypted += message_split[index]
+        
+        return message_encrypted
+    
+    def decrypt_message(self, message):
+        message_split = list(message.lower())
+        message_length = len(message_split)
+        message_ceil = ceil(message_length / self.key)
+        num_empty_cells = self.key * message_ceil - message_length
+        message_grid = [['' for _ in range(message_ceil)] for _ in range(self.key)]
+        message_decrypted = ''
+        iterator = iter(message_split)
+        
+        for i in range(self.key):
+            columns = message_ceil if i < self.key - num_empty_cells else message_ceil - 1
+            for j in range(columns):
+                message_grid[i][j] = next(iterator, None)
+        
+        for j in range(message_ceil):
+            for i in range(self.key):
+                message_decrypted += message_grid[i][j]
+        
+        return message_decrypted
+
+def hack_cipher(message_enc):
+    for key in range(1, len(list(message_enc)) + 1):
+        cipher = TranspositionCipher(key)
+        message_dec = cipher.decrypt_message(message_enc)
+        message_dec_split = message_dec.split()
+        english_words = [PyDictionary.meaning(i) is not None for i in message_dec_split]
+        
+        print(key, english_words)
+        
+        if sum(english_words) == len(list(message_dec_split)):
+            break
+        
+        print()
+    
+    return message_dec, key
+
+hack_cipher('lnh egofa nurp nnyiits')
